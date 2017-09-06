@@ -3,7 +3,7 @@
  *
  *  Created on: Aug 22, 2017
  * 	Last Edited: Sept 5, 2017
- *      Author: Russell Trafford
+ *      Author: Brandon Salamone
  */
 
 /* Your assignment is to take the math function and implement at least the following functions:
