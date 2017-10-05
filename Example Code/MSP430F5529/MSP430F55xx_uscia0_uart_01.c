@@ -43,22 +43,22 @@
  *
  * --/COPYRIGHT--*/
 //******************************************************************************
-//   MSP430F552x Demo - USCI_A0, 115200 UART Echo ISR, DCO SMCLK
+//   MSP430F552x Demo - USCI_A0, Ultra-Low Pwr UART 9600 Echo ISR, 32kHz ACLK
 //
-//   Description: Echo a received character, RX ISR used. Normal mode is LPM0.
+//   Description: Echo a received character, RX ISR used. Normal mode is LPM3,
 //   USCI_A0 RX interrupt triggers TX Echo.
-//   Baud rate divider with 1048576hz = 1048576/115200 = ~9.1 (009h|01h)
-//   ACLK = REFO = ~32768Hz, MCLK = SMCLK = default DCO = 32 x ACLK = 1048576Hz
+//   ACLK = 32768Hz crystal, MCLK = SMCLK = DCO ~1.045MHz
+//   Baud rate divider with 32768Hz XTAL @9600 = 32768Hz/9600 = 3.41
 //   See User Guide for baud rate divider table
 //
-//                 MSP430F552x
+//                MSP430F552x
 //             -----------------
-//         /|\|                 |
-//          | |                 |
-//          --|RST              |
+//        /|\ |              XIN|-
+//         |  |                 | 32kHz
+//         ---|RST          XOUT|-
 //            |                 |
 //            |     P3.3/UCA0TXD|------------>
-//            |                 | 115200 - 8N1
+//            |                 | 9600 - 8N1
 //            |     P3.4/UCA0RXD|<------------
 //
 //   Bhargavi Nisarga
@@ -69,36 +69,45 @@
 
 #include <msp430.h>
 
-char greeting[20] = "Please Start Typing:"; // Initial Greeting you should see upon properly connecting your Launchpad
-int i = 0;
-
 int main(void)
 {
+  unsigned char i;
 
-    WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
+  WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
 
-    P3SEL |= BIT3+BIT4;                       // P3.3,4 = USCI_A0 TXD/RXD
-    UCA0CTL1 |= UCSWRST;                      // **Put state machine in reset**
-    UCA0CTL1 |= UCSSEL_2;                     // SMCLK
-    UCA0BR0 = 9;                              // 1MHz 115200 (see User's Guide)
-    UCA0BR1 = 0;                              // 1MHz 115200
-    UCA0MCTL |= UCBRS_1 + UCBRF_0;            // Modulation UCBRSx=1, UCBRFx=0
-    UCA0CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**
-    UCA0IE |= UCRXIE;                         // Enable USCI_A0 RX interrupt
+  P3SEL = BIT3+BIT4;                        // P3.4,5 = USCI_A0 TXD/RXD
+//.......................
+//  P5SEL |= BIT4+BIT5;                       // Select XT1
+//
+//  UCSCTL6 &= ~(XT1OFF);                     // XT1 On
+//  UCSCTL6 |= XCAP_3;                        // Internal load cap
+//  UCSCTL3 = 0;                              // FLL Reference Clock = XT1
+//
+//  // Loop until XT1,XT2 & DCO stabilizes - In this case loop until XT1 and DCo settle
+//  do
+//  {
+//    UCSCTL7 &= ~(XT2OFFG + XT1LFOFFG + DCOFFG);
+//                                            // Clear XT2,XT1,DCO fault flags
+//    SFRIFG1 &= ~OFIFG;                      // Clear fault flags
+//  }while (SFRIFG1&OFIFG);                   // Test oscillator fault flag
+//
+//  UCSCTL6 &= ~(XT1DRIVE_3);                 // Xtal is now stable, reduce drive strength
+//
+//  UCSCTL4 |= SELA_0 + SELS_4 + SELM_4;      // ACLK = LFTX1
+//                                            // SMCLK = default DCO
+//                                            // MCLK = default DCO
+//
+  //................
+  UCA0CTL1 |= UCSWRST;                      // **Put state machine in reset**
+  UCA0CTL1 |= UCSSEL_1;                     // CLK = ACLK
+  UCA0BR0 = 0x03;                           // 32kHz/9600=3.41 (see User's Guide)
+  UCA0BR1 = 0x00;                           //
+  UCA0MCTL = UCBRS_3+UCBRF_0;               // Modulation UCBRSx=3, UCBRFx=0
+  UCA0CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**
+  UCA0IE |= UCRXIE;                         // Enable USCI_A0 RX interrupt
 
-    while(greeting[i]!='\0')
-    {
-        while (!(UCA0IFG&UCTXIFG));           // USCI_A0 TX buffer ready?
-        {
-            UCA0TXBUF = greeting[i];                  // TX -> RXed character
-            i++;
-        }
-    }
-
-    __bis_SR_register(LPM0_bits + GIE);       // Enter LPM0, interrupts enabled
-    __no_operation();                         // For debugger
-
-
+  __bis_SR_register(LPM3_bits + GIE);       // Enter LPM3, interrupts enabled
+  __no_operation();                         // For debugger
 }
 
 // Echo back RXed character, confirm TX buffer is ready first
@@ -122,4 +131,3 @@ void __attribute__ ((interrupt(USCI_A0_VECTOR))) USCI_A0_ISR (void)
   default: break;
   }
 }
-

@@ -1,16 +1,52 @@
 Code Written By: Brandon Salamone
-Date Submitted: 09/11/2017
-Last Updated: 09/11/2017 
-Library Dependencies: stdio.h
+Date Submitted: 10/04/2017
+Last Updated: 10/04/2017 
 
-How the Code Works:
-This program is designed to run in a manner similar to the way basic mathematical operations are done on a simple calculator.
-A user types the first number, then the operator they wish to use, then the second number. Unlike a real calculator, however, 
-the program does not utilize an 'equals' button. Rather, the operation is done immediately after the second number is entered.
 
-Explanation of Major Functions:
-The program contains only one major function called 'math'. It takes in three inputs: 2 integer numbers and a character 
-representing the mathematical operator. The program is designed to only accept five characters as inputs for the operator:
-+, -, *, /, and M for modulus. If any other character is entered either by mistake or intentionally, the program 
-will output an error message. The program is also designed such that num1 and num2 must be integer values. Entering a character
-such as those used in Operator would yield an answer of 0, and inserting decimal values causes the program to no longer work properly. 
+stdio Library for Math Function:
+This library can be used on all processors and is added to this code to provide all of the functionality of the C programming language.
+This includes operators, loops, and basic C syntax. Without this library the compiler is unable to compile any of the code in math.c
+
+Dependencies:
+This library does not depend on other libraries and can be used by itself to run math.c
+
+Usage:
+After including the math.h and math.c files in the same working directory as your project, 
+you need to simple call the following function to perform the required operation:
+Math(int1, int2, operator);
+
+Valid Inputs
+int1, int2
+16-bit signed integers
+
+operator
+char which is valid for the following values [’+’, ‘-‘, ‘*’, ‘/’, ‘%’]. Math() will return Null if this input it invalid.
+
+Functions
+Add (Operator = ‘+’)
+int1 will be added to int2 and function will return the sum as a signed integer.
+
+Example (5 + 6)
+Math( 5, 6, '+');
+Subtract (char = ‘-‘)
+int 2 will be subtracted from int 1 and function will return the difference as a signed integer.
+
+Example (20 - 5)
+Math( 20, 5, '-');
+Multiply (char = ‘*’)
+int 1 will be multiplied by int2 and function will return the difference as a signed integer.
+
+Example (10 * 20)
+Math( 10, 20, '*');
+Divide (char = ‘/’)
+int1 will be integer divided by int2. This will only return the quotient as an integer.
+
+Example (10 / 2)
+Math( 10, 2, '/');
+Known Errors
+Currently there is no method of returning whether or not the returned value is signed. This means that operations such as “3-5” could be interpreted as +2 or -2.
+
+
+
+
+
